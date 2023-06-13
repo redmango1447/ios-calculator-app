@@ -8,8 +8,10 @@ import UIKit
 
 class CalculatorMainViewController: UIViewController {
 
-    @IBOutlet var numberView: UILabel!
-    @IBOutlet var operatorView: UILabel!
+    @IBOutlet var calculatorScrollView: UIScrollView!
+    @IBOutlet var calculatorStackView: UIStackView!
+    @IBOutlet var operandLabel: UILabel!
+    @IBOutlet var operatorLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -17,53 +19,95 @@ class CalculatorMainViewController: UIViewController {
     }
     
     @IBAction func touchUpPointButton(_ sender: UIButton) {
-        let currentNumberText = numberView.text ?? "0"
+        let currentNumberText = operandLabel.text ?? "0"
         let newPointText = sender.titleLabel?.text ?? "."
         let isPoint = currentNumberText.contains(".")
         
         if isPoint == false {
-            numberView.text = currentNumberText + newPointText
+            operandLabel.text = currentNumberText + newPointText
         }
     }
     
     @IBAction func touchUpNumberButton(_ sender: UIButton) {
-        let currentNumberText = numberView.text ?? "0"
+        let currentNumberText = operandLabel.text ?? "0"
         let newNumberText = sender.titleLabel?.text ?? "0"
         
         guard currentNumberText == "0" else {
-            numberView.text = currentNumberText + newNumberText
+            operandLabel.text = currentNumberText + newNumberText
             return
         }
 
         guard newNumberText == "00" else {
-            numberView.text = newNumberText
+            operandLabel.text = newNumberText
             return
         }
     }
     
     @IBAction func touchUpOperatorButton(_ sender: UIButton) {
+        let newOperator =  sender.titleLabel?.text ?? "+"
         
-        guard let number = numberView.text, Double(number) == 0 else {
-            return //스크롤뷰에 옮기기 numberView 초기화 작업
+        if let newOperand = operandLabel.text, Double(newOperand) != 0 {
+            updateCalculatorRecordView(by: newOperator, and: newOperand)
+            operandLabel.text = "0"
+            updateScrollFocus()
         }
         
-        operatorView.text = sender.titleLabel?.text
+        operatorLabel.text = newOperator
     }
     
     @IBAction func touchUpClearEntryButton(_ sender: UIButton) {
-        numberView.text = "0"
+        operandLabel.text = "0"
     }
     
     @IBAction func touchUpChangeSignButton(_ sender: UIButton) {
-        var currentNumberText = numberView.text ?? "0"
-        let isCurrentSign = currentNumberText.contains("-")
+        var currentOperandText = operandLabel.text ?? "0"
+        let isCurrentSign = currentOperandText.contains("-")
         
         if isCurrentSign == true {
-            currentNumberText.removeFirst()
-            numberView.text = currentNumberText
+            currentOperandText.removeFirst()
+            operandLabel.text = currentOperandText
         } else {
-            numberView.text = "-" + currentNumberText
+            operandLabel.text = "-" + currentOperandText
         }
+    }
+    
+    func updateCalculatorRecordView(by newOperator: String, and newOperand: String) {
+        let newOperandLabel: UILabel = createUILabel(text: newOperand)
+        let newOperatorLabel: UILabel = createUILabel(text: newOperator)
+        let newStackVIew = createUIStackView(laber: newOperatorLabel, newOperandLabel)
+        
+        calculatorStackView.addArrangedSubview(newStackVIew)
+    }
+    
+    private func createUILabel(text: String?) -> UILabel {
+        let label = UILabel()
+        label.textColor = .white
+        label.text = text
+        
+        return label
+    }
+    
+    private func createUIStackView(laber: UILabel...) -> UIStackView {
+        let newStackView = UIStackView()
+        newStackView.spacing = 8
+        newStackView.axis = .horizontal
+        newStackView.alignment = .fill
+        newStackView.distribution = .fill
+        
+        
+        laber.forEach{ newStackView.addArrangedSubview($0) }
+        
+        return newStackView
+    }
+    
+    func updateScrollFocus() {
+        calculatorScrollView.layoutIfNeeded()
+        
+        let scrollViewHeigth =
+        calculatorScrollView.contentSize.height - calculatorScrollView.bounds.height
+        
+        calculatorScrollView
+            .setContentOffset(CGPoint(x: 0, y: scrollViewHeigth), animated: true)
     }
 }
 
