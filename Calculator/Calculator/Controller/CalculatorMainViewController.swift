@@ -1,8 +1,8 @@
 //
 //  Calculator - ViewController.swift
-//  Created by yagom. 
+//  Created by yagom.
 //  Copyright © yagom. All rights reserved.
-// 
+//
 
 import UIKit
 
@@ -27,6 +27,25 @@ final class CalculatorMainViewController: UIViewController {
     
     private var operatorsAndOperandsInput: String = ""
     private var isFormulaEnd: Bool = false
+    private var operandLabelText: String {
+        get {
+            guard let operand = removeComma(of: operandLabel.text) else {
+                return operandLabel.text ?? ""
+            }
+            
+            return operand
+        }
+        set(test) {
+            self.operandLabel.text = test
+        }
+        
+    }
+    private var operandLabelNumber: Decimal {
+        guard let number = Decimal(string: operandLabelText) else {
+            return 0
+        }
+        return number
+    }
     
     // MARK: - View State Method
     
@@ -42,12 +61,12 @@ final class CalculatorMainViewController: UIViewController {
             return
         }
         
-        let currentNumberText = operandLabel.text ?? ""
-        let newPointText = sender.titleLabel?.text ?? "."
-        let isPoint = currentNumberText.contains(".")
+//        let currentNumberText = operandLabel.text ?? ""
+//        let newPointText = sender.titleLabel?.text ?? "."
+        let isNotPoint = !operandLabelText.contains(".")
         
-        if isPoint == false && currentNumberText != "NaN" {
-            operandLabel.text = currentNumberText + newPointText
+        if isNotPoint && operandLabelText != "NaN" {
+            operandLabel.text = operandLabelText + (sender.titleLabel?.text ?? ".")
         }
     }
     
@@ -59,17 +78,12 @@ final class CalculatorMainViewController: UIViewController {
             clearEntry()
         }
         
-        guard
-            var operandLabelText = removeComma(of: operandLabel.text),
-            operandLabelText.count < 20
-        else {
+        guard operandLabelText.count < 20 else {
             return
         }
 
-        operandLabelText.append(sender.titleLabel?.text ?? "")
-        let number = Decimal(string: operandLabelText)
-        
-        operandLabel.text = formatNumber(of: number)
+        operandLabelText = operandLabelText + (sender.titleLabel?.text ?? "")
+        operandLabel.text = formatNumber(of: operandLabelNumber)
     }
     
     @IBAction private func touchUpZeroButton(_ sender: UIButton) {
@@ -81,7 +95,6 @@ final class CalculatorMainViewController: UIViewController {
         }
         
         guard
-            let operandLabelText = operandLabel.text,
             operandLabelText != "NaN",
             operandLabelText != "0" || operandLabelText.contains("."),
             operandLabelText.count < 20
@@ -94,20 +107,18 @@ final class CalculatorMainViewController: UIViewController {
     
     @IBAction private func touchUpOperatorButton(_ sender: UIButton) {
         guard
-            let operandLabelText = removeComma(of: operandLabel.text),
             operandLabelText != "NaN",
-            let number = Decimal(string: operandLabelText),
-            !operatorsAndOperandsInput.isEmpty || !number.isZero
+            !operatorsAndOperandsInput.isEmpty || !operandLabelNumber.isZero
         else {
             return
         }
         
         isFormulaEnd = false
         
-        guard formatNumber(of: Decimal(string: operandLabel.text ?? "")) != "0" else {
-            operatorLabel.text = sender.titleLabel?.text
-            return
-        }
+//        guard formatNumber(of: Decimal(string: operandLabel.text ?? "")) != "0" else {
+//            operatorLabel.text = sender.titleLabel?.text
+//            return
+//        }
         
         appendCalculateItem()
         
@@ -148,11 +159,7 @@ final class CalculatorMainViewController: UIViewController {
     }
     
     @IBAction private func touchUpChangeSignButton(_ sender: UIButton) {
-        guard
-            var operandLabelText = removeComma(of: operandLabel.text),
-            let number = Decimal(string: operandLabelText),
-            !number.isZero
-        else {
+        guard !operandLabelNumber.isZero else {
             return
         }
         
@@ -203,7 +210,7 @@ final class CalculatorMainViewController: UIViewController {
     }
     
     private func appendCalculateItem() {
-        guard let operandLabelText = removeComma(of: operandLabel.text) else {
+        guard operandLabelText != "" else {
             return
         }
         
@@ -212,7 +219,7 @@ final class CalculatorMainViewController: UIViewController {
         if operandLabelText == "NaN" {
             formattedNumber = operandLabelText
         } else {
-            formattedNumber = formatNumber(of: Decimal(string: operandLabelText))
+            formattedNumber = formatNumber(of: operandLabelNumber)
         }
         
         let operatorLabel = createUILabel(text: self.operatorLabel.text)
