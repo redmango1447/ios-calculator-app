@@ -27,6 +27,7 @@ final class CalculatorMainViewController: UIViewController {
     
     private var operatorsAndOperandsInput: String = ""
     private var isFormulaEnd: Bool = false
+    
     private var operandLabelText: String {
         get {
             guard let operand = removeComma(of: operandLabel.text) else {
@@ -35,11 +36,12 @@ final class CalculatorMainViewController: UIViewController {
             
             return operand
         }
-        set(test) {
-            self.operandLabel.text = test
-        }
         
+        set(text) {
+            self.operandLabel.text = text
+        }
     }
+    
     private var operandLabelNumber: Decimal {
         guard let number = Decimal(string: operandLabelText) else {
             return 0
@@ -61,8 +63,6 @@ final class CalculatorMainViewController: UIViewController {
             return
         }
         
-//        let currentNumberText = operandLabel.text ?? ""
-//        let newPointText = sender.titleLabel?.text ?? "."
         let isNotPoint = !operandLabelText.contains(".")
         
         if isNotPoint && operandLabelText != "NaN" {
@@ -72,9 +72,7 @@ final class CalculatorMainViewController: UIViewController {
     
     @IBAction private func touchUpNumberButton(_ sender: UIButton) {
         if isFormulaEnd {
-            appendCalculateItem()
-            operatorsAndOperandsInput = ""
-            isFormulaEnd = false
+            updatePreviousCalculation()
             clearEntry()
         }
         
@@ -82,15 +80,13 @@ final class CalculatorMainViewController: UIViewController {
             return
         }
 
-        operandLabelText = operandLabelText + (sender.titleLabel?.text ?? "")
+        operandLabelText.append(sender.titleLabel?.text ?? "")
         operandLabel.text = formatNumber(of: operandLabelNumber)
     }
     
     @IBAction private func touchUpZeroButton(_ sender: UIButton) {
         if isFormulaEnd {
-            appendCalculateItem()
-            operatorsAndOperandsInput = ""
-            isFormulaEnd = false
+            updatePreviousCalculation()
             clearEntry()
         }
         
@@ -115,22 +111,14 @@ final class CalculatorMainViewController: UIViewController {
         
         isFormulaEnd = false
         
-//        guard formatNumber(of: Decimal(string: operandLabel.text ?? "")) != "0" else {
-//            operatorLabel.text = sender.titleLabel?.text
-//            return
-//        }
-        
         appendCalculateItem()
-        
         operatorLabel.text = sender.titleLabel?.text
         clearEntry()
     }
     
     @IBAction private func touchUpClearEntryButton(_ sender: UIButton) {
         if isFormulaEnd {
-            appendCalculateItem()
-            operatorsAndOperandsInput = ""
-            isFormulaEnd = false
+            updatePreviousCalculation()
         }
         
         clearEntry()
@@ -269,6 +257,12 @@ final class CalculatorMainViewController: UIViewController {
         )
         
         calculatorScrollView.setContentOffset(bottomOffset, animated: true)
+    }
+    
+    private func updatePreviousCalculation() {
+        appendCalculateItem()
+        operatorsAndOperandsInput = ""
+        isFormulaEnd = false
     }
 }
 
